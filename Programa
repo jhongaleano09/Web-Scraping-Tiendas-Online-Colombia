@@ -1,0 +1,202 @@
+from tkinter import messagebox, ttk
+from tkinter import *
+import tkinter as tk
+from selenium import webdriver
+from bs4 import BeautifulSoup as bs
+import pandas as pd
+import numpy as np
+
+def WSMeLi(pag_):
+    driver = webdriver.Chrome('C:\operadriver.exe')
+
+    s_name_producto=[]
+    s_vendido_por=[]
+    s_dto_hoy=[]
+    s_valoracion=[]
+    s_precio_fijo=[]
+    s_precio_con_dto=[]
+    
+    driver.get(pag_)
+    contenido = driver.page_source
+    soup = bs(contenido)
+
+    for tarjeta in soup.find_all('div', attrs={"andes-card andes-card--flat andes-card--default ui-search-result ui-search-result--core andes-card--padding-default"}):
+    
+        nombre = tarjeta.find('h2', attrs = {'class':"ui-search-item__title"})
+        s_name_producto.append(nombre.text)
+    
+        vendido = tarjeta.find('div', attrs={'class':"ui-search-item__group ui-search-item__group--title"}) 
+        s_vendido_por.append(vendido.text)
+    
+        dto = tarjeta.find('span', attrs={'class':"ui-search-price__second-line__label"})
+        s_dto_hoy.append(dto.text)
+    
+        precio_fijo_ini= tarjeta.find('span', attrs={'class':'price-tag-fraction'})
+        s_precio_fijo.append(precio_fijo_ini.text)
+
+    name_producto=s_name_producto
+    vendido_por= s_vendido_por
+    dto_hoy=[]
+    precio_fijo= s_precio_fijo
+
+    for i in s_dto_hoy:
+        dto_hoy.append(i.replace('OFF',"").replace(" ","").replace('%',''))
+
+    df_MeLi = pd.DataFrame({'Nombre_producto':name_producto, 'Vendido_por':vendido_por, 'precio_fijo':precio_fijo, 'Dto_hoy':dto_hoy})
+    df_MeLi.to_csv('MeLi.csv', index=False, encoding = 'utf-8')
+
+def WSFalabella (pag_):
+    Falabella=['https://www.falabella.com.co/falabella-co/category/cat1660941/Celulares-y-Smartphones?sred=celulares',
+               'https://www.falabella.com.co/falabella-co/category/cat1660941/Celulares-y-Smartphones?sred=celulares&page=2',
+               'https://www.falabella.com.co/falabella-co/category/cat1660941/Celulares-y-Smartphones?sred=celulares&page=3',
+               'https://www.falabella.com.co/falabella-co/category/cat1660941/Celulares-y-Smartphones?sred=celulares&page=4', 
+               'https://www.falabella.com.co/falabella-co/category/cat1040982/Neveras?isPLP=1=&sred=nevera',
+               'https://www.falabella.com.co/falabella-co/category/cat1040982/Neveras?isPLP=1&sred=nevera&page=2',
+               'https://www.falabella.com.co/falabella-co/category/cat1040982/Neveras?isPLP=1&sred=nevera&page=3',
+               'https://www.falabella.com.co/falabella-co/category/cat1040982/Neveras?isPLP=1&sred=nevera&page=4',
+               'https://www.falabella.com.co/falabella-co/category/cat1360967/Televisores?sred=televisores',
+               'https://www.falabella.com.co/falabella-co/category/cat1360967/Televisores?sred=televisores&page=2',
+               'https://www.falabella.com.co/falabella-co/category/cat1360967/Televisores?sred=televisores&page=3',
+               'https://www.falabella.com.co/falabella-co/category/cat1360967/Televisores?sred=televisores&page=4']
+    Contador=0
+    for pages in range(12):
+        Contador = Contador +1
+    
+        driver = webdriver.Chrome('C:\operadriver.exe')
+
+        s_name_producto=[]
+        s_vendido_por=[]
+        s_dto_hoy=[]
+        s_valoracion=[]
+        s_precio_fijo=[]
+        s_precio_con_dto=[]
+        #pag = input('Ingrese el URL de Falabella que desea hacer Web Scraping: \n')
+
+        driver.get(Falabella[pages])
+        contenido = driver.page_source
+        soup = bs(contenido)
+        print(soup.title)
+
+        for tarjeta in soup.find_all('div', attrs={'class':"jsx-4001457643 search-results-list"}):
+
+            nombre = tarjeta.find('div', attrs = {'class':"jsx-4221770651"})
+            s_name_producto.append(nombre.text)
+        df_Falabella = pd.DataFrame({'Nombre_producto':s_name_producto,})
+        df_Falabella.to_csv(f'Falabella{Contador}.csv', index=False, encoding = 'utf-8')
+
+
+
+def WSKatronix (pag_):
+    ktronix = ['https://www.ktronix.com/electrodomesticos/grandes-electrodomesticos/refrigeracion/neveras/c/BI_A29_KTRON?page=1&pageSize=100&sort=relevance', 'https://www.ktronix.com/celulares/telefonos-celulares/c/BI_101_KTRON?pageSize=100', 'https://www.ktronix.com/celulares/telefonos-celulares/c/BI_101_KTRON?page=2&pageSize=100&sort=relevance', 'https://www.ktronix.com/tv-video/televisores/c/BI_120_KTRON?page=1&pageSize=100&sort=price-asc']
+    contador = 0
+    
+    for pages in range (4):
+        contador = contador+1
+        
+        driver = webdriver.Chrome('C:\operadriver.exe')
+                #pag = entry.get() #pag = entry.get() #input('Ingrese el url de la pagina Ktronix: \n')
+        s_name_producto=[]
+        s_valoraciones=[]
+        s_precio_fijo=[]
+        s_precio_con_dto=[]
+        driver.get(ktronix[pages])
+
+
+        contenido = driver.page_source
+        soup = bs(contenido)
+        doc = print(soup.title)
+
+        for tarjeta in soup.find_all('li', attrs={'class':"product__list--item product__list--ktronix"}):
+
+            nombre = tarjeta.find('h2', attrs = {'class':"product__information--name"})
+            s_name_producto.append(nombre.text)
+
+            valoracion_ini = tarjeta.find('div', attrs = {'class':"yellow-stars"})
+            s_valoraciones.append(valoracion_ini.text)
+
+            precio_con_dto_ini = tarjeta.find('span', attrs = {'class':"price"})
+            s_precio_con_dto.append(precio_con_dto_ini.text)
+
+            precio_fijo_ini = tarjeta.find('div', attrs = {'class':"product__price--discounts"})
+            s_precio_fijo.append(precio_fijo_ini.text)
+
+        name_producto=[]
+        valoraciones=[]
+        precio_fijo=[]
+        precio_con_dto=[]
+
+        for i in s_name_producto:
+            name_producto.append(i.replace('\n',"").replace('\t',''))
+        for i in s_valoraciones:
+            valoraciones.append(i.replace('\n',"").replace('\t','').replace("(","").replace(")",""))
+        for i in s_precio_con_dto:
+            precio_con_dto.append(i.replace('$',"").replace('\t',''))
+        for i in s_precio_fijo:
+            precio_fijo.append(i.replace("\n",'').replace('Hoy','').replace('\t',''))
+
+        df_Ktronix = pd.DataFrame({'Nombre_producto':name_producto, 'Valoraciones':valoraciones, 'precio_fijo':precio_fijo, 'precio_con_dto':precio_con_dto})
+        df_Ktronix.to_csv(f'ktronix{contador}.csv', index=False, encoding = 'utf-8')
+
+class Application(ttk.Frame):
+    
+    def __init__(self, main_window):
+        super().__init__(main_window)
+        main_window.title("Proyecto Web Scraping - Python")
+        self.combo = ttk.Combobox(self, state="readonly",
+            values=['Falabella','Ktronix','Mercado Libre'])
+                
+        #pag = str(textvariable = pag_)
+        #texto encima de la lista desplegable
+        
+        textoN = Label(main_window, text= 'Seleccione la pagina sobre la cual desea hacer Web Scraping')
+        textoN.place(x=70, y=70)
+        
+        #texto encima de la caja de texto
+        texton = Label(text = 'ingrese la URL')
+        texton.place(x=170, y=170)
+        
+        pag = tk.StringVar()
+        
+        #caja de texto para ingresar URL
+        self.caja = ttk.Entry(main_window, width=65, textvariable=pag)
+        self.caja.place(x=50, y=200)
+        
+        #entry = ttk.Entry(textvariable=pag)
+        
+        
+        
+        self.combo.place(x=200, y=100)
+        self.button = ttk.Button(text="Ejecutar",
+            command=self.show_selection)
+        
+        self.button.place(x=200, y=300)
+        main_window.config(width=500, height=400)
+        self.place(width=500, height=400)
+        
+        pag_ = pag.get()
+        print(pag_)
+    
+    def show_selection(self):
+        # Obtener la opción seleccionada.
+        pag_ = self.caja.get()
+                
+        #caja = ttk.Entry(textvariable=pag_)
+        #pag = self.caja.get()
+        selection = self.combo.get()
+        
+        # hacer uso del programa de ktronix
+        if selection =='Ktronix':
+            WSKatronix (pag_)
+        if selection =='Falabella':
+            WSFalabella (pag_)
+        if selection =='Mercado Libre':
+            WSMeLi(pag_)
+            
+                      
+        messagebox.showinfo(message=f'Se ha realizado el Web Scraping de la tienda {selection} con el enlace \n \n {pag_}\n\n\n Ahora puede abrir el archivo *.csv', 
+                            title ='Web Scraping exitoso')
+
+        
+main_window = tk.Tk()
+app = Application(main_window)
+app.mainloop()
